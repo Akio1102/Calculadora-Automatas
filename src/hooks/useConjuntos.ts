@@ -1,44 +1,75 @@
-const useConjuntos = () => {
-  const isSubset = <T>(A: T[], B: T[]): boolean => {
+const useConjuntos = () => ({
+  /**
+   * Verifica si el conjunto A es un subconjunto de B.
+   * @param {string[]} A - Conjunto A.
+   * @param {string[]} B - Conjunto B.
+   * @returns {boolean} - `true` si A es subconjunto de B, de lo contrario `false`.
+   */
+  isSubset: (A: string[], B: string[]): boolean => {
     const setB = new Set(B);
     return A.every((el) => setB.has(el));
-  };
+  },
 
-  const isMember = <T>(element: T, set: T[]): boolean =>
-    new Set(set).has(element);
+  /**
+   * Verifica si un elemento pertenece a un conjunto.
+   * @param {string} element - Elemento a verificar.
+   * @param {string[]} set - Conjunto donde buscar.
+   * @returns {boolean} - `true` si el elemento está en el conjunto, de lo contrario `false`.
+   */
+  isMember: (element: string, set: string[]): boolean =>
+    new Set(set).has(element),
 
-  const union = <T>(A: T[], B: T[]): T[] => [...new Set([...A, ...B])];
+  /**
+   * Obtiene la unión de dos conjuntos.
+   * @param {string[]} A - Primer conjunto.
+   * @param {string[]} B - Segundo conjunto.
+   * @returns {string[]} - Conjunto resultante de la unión.
+   */
+  union: (A: string[], B: string[]): string[] => [...new Set([...A, ...B])],
 
-  const intersection = <T>(A: T[], B: T[]): T[] => {
-    const setB = new Set(B);
-    return A.filter((el) => setB.has(el));
-  };
+  /**
+   * Obtiene la intersección de dos conjuntos.
+   * @param {string[]} A - Primer conjunto.
+   * @param {string[]} B - Segundo conjunto.
+   * @returns {string[]} - Conjunto con los elementos comunes.
+   */
+  intersection: (A: string[], B: string[]): string[] => {
+    const setA = new Set(A);
+    return B.filter((el) => setA.has(el));
+  },
 
-  const difference = <T>(A: T[], B: T[]): T[] => {
+  /**
+   * Obtiene la diferencia entre dos conjuntos (A - B).
+   * @param {string[]} A - Primer conjunto.
+   * @param {string[]} B - Segundo conjunto.
+   * @returns {string[]} - Conjunto con los elementos de A que no están en B.
+   */
+  difference: (A: string[], B: string[]): string[] => {
     const setB = new Set(B);
     return A.filter((el) => !setB.has(el));
-  };
+  },
 
-  const symmetricDifference = <T>(A: T[], B: T[]): T[] => [
-    ...difference(A, B),
-    ...difference(B, A),
-  ];
+  /**
+   * Obtiene la diferencia simétrica entre dos conjuntos.
+   * @param {string[]} A - Primer conjunto.
+   * @param {string[]} B - Segundo conjunto.
+   * @returns {string[]} - Conjunto con los elementos que están en A o B, pero no en ambos.
+   */
+  symmetricDifference: (A: string[], B: string[]): string[] =>
+    [...new Set([...A, ...B])].filter(
+      (el) => !(new Set(A).has(el) && new Set(B).has(el))
+    ),
 
-  const complement = <T>(U: T[], B: T[]): T[] => {
+  /**
+   * Obtiene el complemento de un conjunto respecto a un universo U.
+   * @param {string[]} U - Conjunto universo.
+   * @param {string[]} B - Conjunto a complementar.
+   * @returns {string[]} - Conjunto con los elementos de U que no están en B.
+   */
+  complement: (U: string[], B: string[]): string[] => {
     const setB = new Set(B);
     return U.filter((el) => !setB.has(el));
-  };
-
-  return {
-    isSubset,
-    isMember,
-    union,
-    intersection,
-    difference,
-    symmetricDifference,
-    complement,
-  };
-};
+  },
+});
 
 export default useConjuntos;
-

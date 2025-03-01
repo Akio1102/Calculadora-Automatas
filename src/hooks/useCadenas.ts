@@ -1,25 +1,33 @@
-const useCadenas = () => {
-  const length = (str: string): number => str.length
+const useCadenas = () => ({
+  /**
+   * Obtiene la longitud de una cadena.
+   * @param {string} str - La cadena de entrada.
+   * @returns {number} - La longitud de la cadena.
+   */
+  length: (str: string): number => str.length,
 
-  const concatenate = (A: string, B: string): string => `${A}${B}`
+  /**
+   * Concatena dos cadenas.
+   * @param {string} A - Primera cadena.
+   * @param {string} B - Segunda cadena.
+   * @returns {string} - La concatenación de A y B.
+   */
+  concatenate: (A: string, B: string): string => A + B,
 
-  const power = (str: string, n: number): string => (n > 0 ? str.repeat(n) : "")
+  /**
+   * Repite una cadena n veces.
+   * @param {string} str - La cadena a repetir.
+   * @param {number} n - Número de repeticiones (debe ser mayor o igual a 0).
+   * @returns {string} - La cadena repetida n veces o una cadena vacía si n es 0 o menor.
+   */
+  power: (str: string, n: number): string => (n > 0 ? str.repeat(n) : ""),
 
-  const reverse = (str: string): string => [...str].reverse().join("")
+  /**
+   * Invierte una cadena de caracteres.
+   * @param {string} str - La cadena a invertir.
+   * @returns {string} - La cadena invertida.
+   */
+  reverse: (str: string): string => str.split("").reverse().join(""),
+});
 
-  const kleeneClosure = (str: string): string => `${str}* (infinite repetitions)`
-
-  const positiveClosure = (str: string): string => `${str}+ (at least one repetition)`
-
-  return {
-    length,
-    concatenate,
-    power,
-    reverse,
-    kleeneClosure,
-    positiveClosure,
-  }
-}
-
-export default useCadenas
-
+export default useCadenas;
