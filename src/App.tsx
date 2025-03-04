@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import "./App.css";
-import type React from "react";
-import { useState, type ChangeEvent, type FormEvent } from "react";
-import { FaCalculator, FaChevronDown } from "react-icons/fa";
-import { useCadenas, useAlfabetos, useConjuntos } from "./hooks/";
+import "./App.css"
+import type React from "react"
+import { useState, type ChangeEvent, type FormEvent } from "react"
+import { FaCalculator, FaChevronDown } from "react-icons/fa"
+import { useCadenas, useAlfabetos, useConjuntos } from "./hooks/"
 
 type Operation =
   | "length"
@@ -19,7 +19,13 @@ type Operation =
   | "intersection"
   | "difference"
   | "symmetricDifference"
-  | "complement";
+  | "complement"
+  | "alfabetosConcatenate"
+  | "alfabetosPower"
+  | "alfabetosReverse"
+  | "alfabetosUnion"
+  | "alfabetosIntersection"
+  | "alfabetosDifference"
 
 const operationDescriptions: Record<Operation, string> = {
   length: "Calcula la longitud de la cadena de entrada.",
@@ -33,99 +39,159 @@ const operationDescriptions: Record<Operation, string> = {
   union: "Combina elementos únicos de ambos conjuntos.",
   intersection: "Encuentra elementos comunes en ambos conjuntos.",
   difference: "Elementos en el primer conjunto pero no en el segundo.",
-  symmetricDifference:
-    "Elementos que están en uno u otro conjunto, pero no en ambos.",
-  complement:
-    "Elementos del conjunto universal que no están en el conjunto dado.",
-};
+  symmetricDifference: "Elementos que están en uno u otro conjunto, pero no en ambos.",
+  complement: "Elementos del conjunto universal que no están en el conjunto dado.",
+  alfabetosConcatenate: "Concatena dos conjuntos de cadenas sin duplicados.",
+  alfabetosPower: "Genera el conjunto potencia hasta una longitud dada.",
+  alfabetosReverse: "Invierte cada cadena dentro de un conjunto.",
+  alfabetosUnion: "Obtiene la unión de dos conjuntos de cadenas.",
+  alfabetosIntersection: "Obtiene la intersección de dos conjuntos de cadenas.",
+  alfabetosDifference: "Obtiene la diferencia entre dos conjuntos de cadenas.",
+}
 
 const App = () => {
-  const [operation, setOperation] = useState<Operation>("length");
-  const [input1, setInput1] = useState("");
-  const [input2, setInput2] = useState("");
-  const [result, setResult] = useState<string | boolean | number>("");
-  const [error, setError] = useState("");
+  const [operation, setOperation] = useState<Operation>("length")
+  const [input1, setInput1] = useState("")
+  const [input2, setInput2] = useState("")
+  const [maxIterations, setMaxIterations] = useState("5")
+  const [result, setResult] = useState<string | boolean | number | string[]>("")
+  const [error, setError] = useState("")
 
-  const cadenas = useCadenas();
-  const conjuntos = useConjuntos();
+  const cadenas = useCadenas()
+  const conjuntos = useConjuntos()
+  const alfabetos = useAlfabetos()
 
   const validateInput = (input: string): boolean => {
-    return /^[a-zA-Z0-9]*$/.test(input);
-  };
+    return /^[a-zA-Z0-9ñÑ,\s]*$/.test(input);
+  }
+
+  const validateNumberInput = (input: string): boolean => {
+    return /^\d*$/.test(input)
+  }
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement>,
-    inputSetter: React.Dispatch<React.SetStateAction<string>>
+    inputSetter: React.Dispatch<React.SetStateAction<string>>,
   ) => {
-    const value = e.target.value;
+    const value = e.target.value
     if (validateInput(value)) {
-      inputSetter(value);
-      setError("");
+      inputSetter(value)
+      setError("")
     } else {
-      setError(
-        "Solo se permiten letras y números, sin espacios ni caracteres especiales."
-      );
+      setError("Solo se permiten letras, números, comas y espacios.")
     }
-  };
+  }
+
+  const handleNumberInputChange = (
+    e: ChangeEvent<HTMLInputElement>,
+    inputSetter: React.Dispatch<React.SetStateAction<string>>,
+  ) => {
+    const value = e.target.value
+    if (validateNumberInput(value)) {
+      inputSetter(value)
+      setError("")
+    } else {
+      setError("Solo se permiten números enteros positivos.")
+    }
+  }
+
+  const parseInput = (input: string): string[] => {
+    return input
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item !== "")
+  }
 
   const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    setError("");
+    e.preventDefault()
+    setError("")
 
-    switch (operation) {
-      case "length":
-        setResult(cadenas.length(input1));
-        break;
-      case "concatenate":
-        setResult(cadenas.concatenate(input1, input2));
-        break;
-      case "power":
-        setResult(cadenas.power(input1, Number.parseInt(input2)));
-        break;
-      case "reverse":
-        setResult(cadenas.reverse(input1));
-        break;
+    try {
+      switch (operation) {
+        // Operaciones de cadenas
+        case "length":
+          setResult(cadenas.length(input1))
+          break
+        case "concatenate":
+          setResult(cadenas.concatenate(input1, input2))
+          break
+        case "power":
+          setResult(cadenas.power(input1, Number.parseInt(input2 || "0")))
+          break
+        case "reverse":
+          setResult(cadenas.reverse(input1))
+          break
 
-      // case "kleeneClosure":
-      //   setResult(cadenas.kleeneClosure(input1))
-      //   break
-      // case "positiveClosure":
-      //   setResult(cadenas.positiveClosure(input1))
-      //   break
+        // Operaciones de conjuntos
+        case "isSubset":
+          setResult(conjuntos.isSubset(parseInput(input1), parseInput(input2)))
+          break
+        case "isMember":
+          setResult(conjuntos.isMember(input1, parseInput(input2)))
+          break
+        case "union":
+          setResult(conjuntos.union(parseInput(input1), parseInput(input2)).join(", "))
+          break
+        case "intersection":
+          setResult(conjuntos.intersection(parseInput(input1), parseInput(input2)).join(", "))
+          break
+        case "difference":
+          setResult(conjuntos.difference(parseInput(input1), parseInput(input2)).join(", "))
+          break
+        case "symmetricDifference":
+          setResult(conjuntos.symmetricDifference(parseInput(input1), parseInput(input2)).join(", "))
+          break
+        case "complement":
+          setResult(conjuntos.complement(parseInput(input1), parseInput(input2)).join(", "))
+          break
 
-      case "isSubset":
-        setResult(conjuntos.isSubset(input1.split(""), input2.split("")));
-        break;
-      case "isMember":
-        setResult(conjuntos.isMember(input1[0], input2.split("")));
-        break;
-      case "union":
-        setResult(conjuntos.union(input1.split(""), input2.split("")).join(""));
-        break;
-      case "intersection":
-        setResult(
-          conjuntos.intersection(input1.split(""), input2.split("")).join("")
-        );
-        break;
-      case "difference":
-        setResult(
-          conjuntos.difference(input1.split(""), input2.split("")).join("")
-        );
-        break;
-      case "symmetricDifference":
-        setResult(
-          conjuntos
-            .symmetricDifference(input1.split(""), input2.split(""))
-            .join("")
-        );
-        break;
-      case "complement":
-        setResult(
-          conjuntos.complement(input1.split(""), input2.split("")).join("")
-        );
-        break;
+        // Operaciones de alfabetos
+        case "alfabetosConcatenate":
+          setResult(alfabetos.concatenate(parseInput(input1), parseInput(input2)))
+          break
+        case "alfabetosPower":
+          setResult(alfabetos.power(parseInput(input1), Number.parseInt(input2 || "3")).join(", "))
+          break
+        case "alfabetosReverse":
+          setResult(alfabetos.reverse(parseInput(input1)).join(", "))
+          break
+        case "alfabetosUnion":
+          setResult(alfabetos.union(parseInput(input1), parseInput(input2)).join(", "))
+          break
+        case "alfabetosIntersection":
+          setResult(alfabetos.intersection(parseInput(input1), parseInput(input2)).join(", "))
+          break
+        case "alfabetosDifference":
+          setResult(alfabetos.difference(parseInput(input1), parseInput(input2)).join(", "))
+          break
+        case "kleeneClosure":
+          setResult(alfabetos.kleeneClosure(parseInput(input1), Number.parseInt(maxIterations) || 5).join(", "))
+          break
+        case "positiveClosure":
+          setResult(alfabetos.positiveClosure(parseInput(input1), Number.parseInt(maxIterations) || 5).join(", "))
+          break
+      }
+    } catch (err) {
+      setError(`Error al calcular: ${err instanceof Error ? err.message : String(err)}`)
     }
-  };
+  }
+
+  const needsSecondInput = [
+    "concatenate",
+    "power",
+    "isSubset",
+    "union",
+    "intersection",
+    "difference",
+    "symmetricDifference",
+    "complement",
+    "alfabetosConcatenate",
+    "alfabetosUnion",
+    "alfabetosIntersection",
+    "alfabetosDifference",
+  ].includes(operation)
+
+  const needsNumberInput = ["power", "alfabetosPower", "kleeneClosure", "positiveClosure"].includes(operation)
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-400 to-indigo-600">
@@ -141,60 +207,63 @@ const App = () => {
               onChange={(e) => setOperation(e.target.value as Operation)}
               className="w-full p-4 pr-10 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-gray-700 cursor-pointer"
             >
-              <optgroup
-                label="Operaciones con Cadenas"
-                className="font-semibold"
-              >
+              <optgroup label="Operaciones con Cadenas" className="font-semibold">
                 <option value="length">Longitud</option>
                 <option value="concatenate">Concatenación</option>
                 <option value="power">Potencia</option>
                 <option value="reverse">Invertir</option>
-                <option value="kleeneClosure">Clausura de Kleene</option>
-                <option value="positiveClosure">Clausura Positiva</option>
               </optgroup>
-              <optgroup
-                label="Operaciones con Conjuntos"
-                className="font-semibold"
-              >
+              <optgroup label="Operaciones con Conjuntos" className="font-semibold">
                 <option value="isSubset">Es Subconjunto</option>
                 <option value="isMember">Es Miembro</option>
                 <option value="union">Unión</option>
                 <option value="intersection">Intersección</option>
                 <option value="difference">Diferencia</option>
-                <option value="symmetricDifference">
-                  Diferencia Simétrica
-                </option>
+                <option value="symmetricDifference">Diferencia Simétrica</option>
                 <option value="complement">Complemento</option>
+              </optgroup>
+              <optgroup label="Operaciones con Alfabetos" className="font-semibold">
+                <option value="alfabetosConcatenate">Concatenación</option>
+                <option value="alfabetosPower">Potencia</option>
+                <option value="alfabetosReverse">Invertir</option>
+                <option value="alfabetosUnion">Unión</option>
+                <option value="alfabetosIntersection">Intersección</option>
+                <option value="alfabetosDifference">Diferencia</option>
+                <option value="kleeneClosure">Clausura de Kleene</option>
+                <option value="positiveClosure">Clausura Positiva</option>
               </optgroup>
             </select>
             <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
-          <p className="text-sm text-gray-600 italic">
-            {operationDescriptions[operation]}
-          </p>
+          <p className="text-sm text-gray-600 italic">{operationDescriptions[operation]}</p>
           <input
             type="text"
             value={input1}
             onChange={(e) => handleInputChange(e, setInput1)}
-            placeholder="Entrada 1"
+            placeholder={operation === "isMember" ? "Elemento" : "Entrada 1 (separar elementos con comas)"}
             className="w-full p-4 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
           />
-          {[
-            "concatenate",
-            "power",
-            "isSubset",
-            "isMember",
-            "union",
-            "intersection",
-            "difference",
-            "symmetricDifference",
-            "complement",
-          ].includes(operation) && (
+          {needsSecondInput && (
             <input
               type="text"
               value={input2}
               onChange={(e) => handleInputChange(e, setInput2)}
-              placeholder="Entrada 2"
+              placeholder={
+                operation === "isMember"
+                  ? "Conjunto (separar elementos con comas)"
+                  : operation === "power"
+                    ? "Número de repeticiones"
+                    : "Entrada 2 (separar elementos con comas)"
+              }
+              className="w-full p-4 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            />
+          )}
+          {["kleeneClosure", "positiveClosure"].includes(operation) && (
+            <input
+              type="text"
+              value={maxIterations}
+              onChange={(e) => handleNumberInputChange(e, setMaxIterations)}
+              placeholder="Máximo de iteraciones"
               className="w-full p-4 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
             />
           )}
@@ -209,12 +278,13 @@ const App = () => {
         {result !== "" && (
           <div className="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
             <h3 className="font-semibold text-indigo-700 mb-2">Resultado:</h3>
-            <p className="text-indigo-900">{result.toString()}</p>
+            <p className="text-indigo-900 break-words">{result.toString()}</p>
           </div>
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default App;
+export default App
+
